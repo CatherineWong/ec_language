@@ -1,9 +1,11 @@
 [submodule "pregex"]
 	path = pregex
-	url = git@github.com:insperatum/pregex.git
+	url = https://github.com/insperatum/pregex.git
+	branch = master
 [submodule "pinn"]
 	path = pinn
-	url = git@github.com:insperatum/pinn.git
+	url = https://github.com/insperatum/pinn.git
+	branch = master
 [submodule "pyccg"]
 	path = pyccg
 	url = https://github.com/hans/pyccg

@@ -82,16 +82,20 @@ class SupervisedTower(Task):
                      else np.zeros((256,256,3))
                      for t in ts],
                     columns=columns)        
-        import scipy.misc
-        scipy.misc.imsave(f, a)
+        # import scipy.misc
+        # scipy.misc.imsave(f, a)
+        import imageio
+        imageio.imwrite(f, a)
         
 
     def exportImage(self, f, pretty=True, Lego=True, drawHand=False):
         a = renderPlan(self.plan,
                        pretty=pretty, Lego=Lego,
                        drawHand=t.hand if drawHand else None)
-        import scipy.misc
-        scipy.misc.imsave(f, a)
+        # import scipy.misc
+        # scipy.misc.imsave(f, a)
+        import imageio
+        imageio.imwrite(f, a)
 
     def logLikelihood(self, e, timeout=None):
         from dreamcoder.domains.tower.tower_common import centerTower

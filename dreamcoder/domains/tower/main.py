@@ -160,13 +160,16 @@ def dreamOfTowers(grammar, prefix, N=250, make_montage=True):
 
     # Only visualize if it has something to visualize.
     if len(matrix) > 0:
-        import scipy.misc
+        # import scipy.misc
+        import imageio
         if make_montage:
             matrix = montage(matrix)
-            scipy.misc.imsave('%s.png'%prefix, matrix)
+            imageio.imwrite('%s.png'%prefix, matrix)
+            # scipy.misc.imsave('%s.png'%prefix, matrix)
         else:
             for n,i in enumerate(matrix):
-                scipy.misc.imsave(f'{prefix}/{n}.png', i)
+                imageio.imwrite(f'{prefix}/{n}.png', i)
+                # scipy.misc.imsave(f'{prefix}/{n}.png', i)
     else:
         eprint("Tried to visualize dreams, but none to visualize.")
 
@@ -263,7 +266,8 @@ def main(arguments):
     # TODO(lcary): use a function call to retrieve and declare primitives instead.
     global primitives
 
-    import scipy.misc
+    # import scipy.misc
+    import imageio
 
     g0 = Grammar.uniform({"new": new_primitives,
                           "old": primitives}[arguments.pop("primitives")],
@@ -313,7 +317,8 @@ def main(arguments):
     for j,task in enumerate(tasks):
         task.exportImage(f"/tmp/tower_task_{j}.png")
     for k,v in dSLDemo().items():
-        scipy.misc.imsave(f"/tmp/tower_dsl_{k}.png", v)
+        # scipy.misc.imsave(f"/tmp/tower_dsl_{k}.png", v)
+        imageio.imwrite(f"/tmp/tower_dsl_{k}.png", v)
         os.system(f"convert /tmp/tower_dsl_{k}.png -channel RGB -negate /tmp/tower_dsl_{k}.png")
         
 
