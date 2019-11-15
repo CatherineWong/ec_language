@@ -44,9 +44,9 @@ class SupervisedTower(Task):
                                         drawHand=self.hand,
                                         pretty=pretty)
             return self.handImage
-                
 
-    
+
+
     # do not pickle the image
     def __getstate__(self):
         return self.specialTask, self.plan, self.request, self.cache, self.name, self.examples
@@ -66,14 +66,14 @@ class SupervisedTower(Task):
         from pylab import imshow,show
         a = montage([renderPlan(t.plan, pretty=True, Lego=True, resolution=256,
                                 drawHand=False)
-                     for t in ts]) 
+                     for t in ts])
         imshow(a)
         show()
 
     @staticmethod
     def exportMany(f, ts, shuffle=True, columns=None):
         import numpy as np
-        
+
         ts = list(ts)
         if shuffle:
             assert all( t is not None for t in ts  )
@@ -81,12 +81,12 @@ class SupervisedTower(Task):
         a = montage([renderPlan(t.plan, pretty=True, Lego=True, resolution=256) if t is not None \
                      else np.zeros((256,256,3))
                      for t in ts],
-                    columns=columns)        
+                    columns=columns)
         # import scipy.misc
         # scipy.misc.imsave(f, a)
         import imageio
         imageio.imwrite(f, a)
-        
+
 
     def exportImage(self, f, pretty=True, Lego=True, drawHand=False):
         a = renderPlan(self.plan,
@@ -104,10 +104,10 @@ class SupervisedTower(Task):
             if centerTower(plan) == centerTower(self.plan): return 0.
             return NEGATIVEINFINITY
         try: return runWithTimeout(k, timeout)
-        except RunWithTimeout: return NEGATIVEINFINITY        
+        except RunWithTimeout: return NEGATIVEINFINITY
         
 
-    
+
 
 def parseTower(s):
     _13 = Program.parse("1x3")
@@ -138,7 +138,7 @@ def parseTower(s):
         if k[0] == Symbol("embed"):
             body = block(k[1:], [None] + environment, Index(0))
             return Application(Application(_e,Abstraction(body)),continuation)
-            
+
         assert False
     def expression(e, environment):
         for n, v in enumerate(environment):
@@ -152,7 +152,7 @@ def parseTower(s):
         if e[0] == Symbol('-'): return Application(Application(_subtraction, expression(e[1], environment)),
                                                    expression(e[2], environment))
         assert False
-        
+
     def block(b, environment, continuation):
         if len(b) == 0: return continuation
         return command(b[0], environment, block(b[1:], environment, continuation))
@@ -160,7 +160,7 @@ def parseTower(s):
     try: return Abstraction(command(s, [], Index(0)))
     except: return Abstraction(block(s, [], Index(0)))
 
-    
+
 def makeSupervisedTasks():
     arches = [SupervisedTower("arch leg %d"%n,
                               "((for i %d v) (r 4) (for i %d v) (l 2) h)"%(n,n))
@@ -168,15 +168,15 @@ def makeSupervisedTasks():
     ]
     archesStacks = [SupervisedTower("arch stack %d"%n,
                                     """
-                                    (for i %d 
+                                    (for i %d
                                     v (r 4) v (l 2) h (l 2))
                                     """%n)
                     for n in range(3,7) ]
     Bridges = [SupervisedTower("bridge (%d) of arch %d"%(n,l),
                                """
                                (for j %d
-                                (for i %d 
-                                 v (r 4) v (l 4)) (r 2) h 
+                                (for i %d
+                                 v (r 4) v (l 4)) (r 2) h
                                 (r 4))
                                """%(n,l))
                for n in range(2,8)
@@ -193,7 +193,7 @@ def makeSupervisedTasks():
                             """(for i %d
                             h (l 2) v (r 2) v (r 2) v (l 2) h (r 6))"""%n)
             for n in range(1,7) ]
-    
+
     staircase1 = [SupervisedTower("R staircase %d"%n,
 """
 (for i %d (for j i
@@ -277,8 +277,8 @@ def makeSupervisedTasks():
                                     (embed (r 3) (for i %d h (r 6))))
                                     (r 1)
                                     (for j %d
-                                    (for i %d 
-                                    v (r 4) v (l 4)) (r 2) h 
+                                    (for i %d
+                                    v (r 4) v (l 4)) (r 2) h
                                     (r 4)))
                                     """%(w1,w2,w2,b1,b2))
                     for b1,b2,w1,w2 in [(5,2,4,5)]
@@ -305,9 +305,9 @@ def makeSupervisedTasks():
                                             """%(w1,w2,w2,
                                                  "v "*t, "v "*t))
                             for t,w1,w2 in [(4,1,3)] ]
-                            
-    
-                     
+
+
+
     everything = arches + simpleLoops + Bridges + archesStacks + aqueducts + offsetArches + pyramids + bricks + staircase2 + staircase1 + compositions
     if False:
         for t in everything:
@@ -321,15 +321,15 @@ def makeOldSupervisedTasks():
     ]
     archesStacks = [SupervisedTower("arch stack %d"%n,
                                     """
-                                    (for i %d 
+                                    (for i %d
                                     v (r 4) v (l 2) h (l 2))
                                     """%n)
                     for n in range(3,7) ]
     Bridges = [SupervisedTower("bridge (%d) of arch %d"%(n,l),
                                """
                                (for j %d
-                                (for i %d 
-                                 v (r 4) v (l 4)) (r 2) h 
+                                (for i %d
+                                 v (r 4) v (l 4)) (r 2) h
                                 (r 4))
                                """%(n,l))
                for n in range(2,8)
@@ -337,7 +337,7 @@ def makeOldSupervisedTasks():
     offsetArches = [SupervisedTower("bridge (%d) of arch, spaced %d"%(n,l),
                                """
                                (for j %d
-                                 v (r 4) v (l 2) h 
+                                 v (r 4) v (l 2) h
                                 (r %d))
                                """%(n,l))
                     for n,l in [(3,7),(4,6)]]
@@ -345,7 +345,7 @@ def makeOldSupervisedTasks():
                             """(for i %d
                             h (l 2) v (r 2) v (r 2) v (l 2) h (r 6))"""%n)
             for n in range(1,7) ]
-    
+
     staircase1 = [SupervisedTower("R staircase %d"%n,
 """
 (for i %d (for j i
@@ -433,8 +433,8 @@ def makeOldSupervisedTasks():
                                     (embed (r 3) (for i %d h (r 6))))
                                     (r 1)
                                     (for j %d
-                                    (for i %d 
-                                    v (r 4) v (l 4)) (r 2) h 
+                                    (for i %d
+                                    v (r 4) v (l 4)) (r 2) h
                                     (r 4)))
                                     """%(w1,w2,w2,b1,b2))
                     for b1,b2,w1,w2 in [(5,2,4,5)]
@@ -461,9 +461,9 @@ def makeOldSupervisedTasks():
                                             """%(w1,w2,w2,
                                                  "v "*t, "v "*t))
                             for t,w1,w2 in [(4,1,3)] ]
-                            
-    
-                     
+
+
+
     everything = arches + simpleLoops + Bridges + archesStacks + aqueducts + offsetArches + pyramids + bricks + staircase2 + staircase1 + compositions
     if False:
         for t in everything:
@@ -509,18 +509,18 @@ def dSLDemo():
         images[k] = i
 
     return images
-            
+
 if __name__ == "__main__":
     from pylab import imshow,show
     from dreamcoder.domains.tower.tower_common import *
-    
+
     ts = makeSupervisedTasks()
     print(len(ts),"total tasks")
     print("maximum plan length",max(len(f.plan) for f in ts ))
     print("maximum tower length",max(towerLength(f.plan) for f in ts ))
     print("maximum tower height",max(towerHeight(simulateWithoutPhysics(f.plan)) for f in ts ))
     SupervisedTower.exportMany("/tmp/every_tower.png",ts,shuffle=False)
-    
+
     for j,t in enumerate(ts):
         t.exportImage("/tmp/tower_%d.png"%j,
                       drawHand=False)
@@ -559,6 +559,3 @@ if __name__ == "__main__":
         random.shuffle(examples)
         SupervisedTower.exportMany("/tmp/tower10_%d.png"%n,examples,
                                    columns=int(len(examples)/2))
-        
-        
-        
