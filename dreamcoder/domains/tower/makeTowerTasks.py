@@ -99,12 +99,9 @@ class SupervisedTower(Task):
 
     def logLikelihood(self, e, timeout=None):
         from dreamcoder.domains.tower.tower_common import centerTower
-        def k():
-            plan = e.evaluate([])(lambda s: (s,[]))(0)[1]
-            if centerTower(plan) == centerTower(self.plan): return 0.
-            return NEGATIVEINFINITY
-        try: return runWithTimeout(k, timeout)
-        except RunWithTimeout: return NEGATIVEINFINITY
+        yh = executeTower(e, timeout)
+        if yh is not None and centerTower(yh) == centerTower(self.plan): return 0.
+        return NEGATIVEINFINITY
         
 
 
@@ -160,7 +157,40 @@ def parseTower(s):
     try: return Abstraction(command(s, [], Index(0)))
     except: return Abstraction(block(s, [], Index(0)))
 
-
+def makeLanguageTasks():
+        all_tasks = []
+        
+        # Simple loops
+        name_template = 'stack %d horizontal'
+        tasks = [
+            SupervisedTower(name_template%n,
+            """(for j %d h)"""%n)
+            for n in range(1,9)]
+        all_tasks += tasks
+        
+        name_template = 'stack %d vertical'
+        tasks = [
+            SupervisedTower(name_template%n,
+            """(for j %d v)"""%n)
+            for n in range(1,9)]
+        all_tasks += tasks
+    
+        # name_template = '%d horizontal spaced %d'
+        # tasks = [
+        #     SupervisedTower(name_template%(n, s),
+        #     """(for j %d h (r %s))"""%(n,s))
+        #     for n in range(2,9) for s in range(6,9)]
+        # all_tasks += tasks
+        # 
+        # name_template = '%d vertical spaced %d'
+        # tasks = [
+        #         SupervisedTower(name_template%(n, s),
+        #         """(for j %d v (r %s))"""%(n,s))
+        #         for n in range(2,9) for s in range(3,9)]
+        # all_tasks += tasks
+        
+        return all_tasks
+    
 def makeSupervisedTasks():
     arches = [SupervisedTower("arch leg %d"%n,
                               "((for i %d v) (r 4) (for i %d v) (l 2) h)"%(n,n))

@@ -130,7 +130,7 @@ class TowerCNN(nn.Module):
 
 def tower_options(parser):
     parser.add_argument("--tasks",
-                        choices=["old","new"],
+                        choices=["old","new","language"],
                         default="old")
     parser.add_argument("--visualize",
                         default=None, type=str)
@@ -297,15 +297,18 @@ def main(arguments):
         
     
     tasks = arguments.pop("tasks")
+    taskType = tasks
     if tasks == "new":
         tasks = makeSupervisedTasks()
     elif tasks == "old":
         tasks = makeOldSupervisedTasks()
+    elif tasks == 'language':
+        tasks = makeLanguageTasks()
     else: assert False
         
     test, train = testTrainSplit(tasks, arguments.pop("split"))
     eprint("Split %d/%d test/train" % (len(test), len(train)))
-
+    
     # Make a montage for the paper
     shuffledTrain = list(train)
     shuffledTest = list(test)
@@ -315,7 +318,11 @@ def main(arguments):
     shuffledTest = shuffledTest + [None]*(60 - len(shuffledTest))
     SupervisedTower.exportMany("/tmp/every_tower.png",shuffledTrain + shuffledTest, shuffle=False, columns=10)
     for j,task in enumerate(tasks):
-        task.exportImage(f"/tmp/tower_task_{j}.png")
+        if taskType == 'language':
+            filename = "_".join(task.name.split(" "))
+            task.exportImage(f'../tower_images/tmp/{j}_{filename}.png')
+        else:
+            task.exportImage(f"/tmp/tower_task_{j}.png")
     for k,v in dSLDemo().items():
         # scipy.misc.imsave(f"/tmp/tower_dsl_{k}.png", v)
         imageio.imwrite(f"/tmp/tower_dsl_{k}.png", v)

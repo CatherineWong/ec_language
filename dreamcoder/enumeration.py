@@ -431,7 +431,10 @@ def enumerateForTasks(g, tasks, likelihoodModel, _=None,
                     #likelihood = task.logLikelihood(p, evaluationTimeout)
                     #if invalid(likelihood):
                         #continue
-                    success, likelihood = likelihoodModel.score(p, task)
+                    try:
+                        success, likelihood = likelihoodModel.score(p, task)
+                    except Exception as e:
+                        success = False
                     if not success:
                         continue
                         

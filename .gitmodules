@@ -8,5 +8,4 @@
 	branch = master
 [submodule "pyccg"]
 	path = pyccg
-	url = https://github.com/hans/pyccg
-	branch = master
+	url = https://github.com/CatherineWong/pyccg.git

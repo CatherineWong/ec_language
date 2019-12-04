@@ -107,7 +107,11 @@ class Grammar(object):
     @property
     def primitives(self):
         return [p for _, _, p in self.productions]
-
+    
+    @property
+    def base_types(self):
+        return set().union(*[t.get_base_types() for (_, t, _) in self.productions])
+    
     def removeProductions(self, ps):
         return Grammar(
             self.logVariable, [

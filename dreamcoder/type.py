@@ -17,6 +17,40 @@ class Type(object):
         if "constructor" in j: return TypeConstructor(j["constructor"],
                                                       [ Type.fromjson(a) for a in j["arguments"] ])
         assert False
+    
+    def get_base_types(self):
+        if self.isArrow():
+            base_types = set()
+            for t in self.arguments:
+                if t.get_base_types() is not None:
+                    base_types.update(t.get_base_types())
+            return set(base_types)
+        else:
+            return set([self.name])
+    
+    def to_pyccg_array(self, isReturn):
+        """
+        Converts to PyCCG function type: nested array type format.
+        """
+        if self.name == ARROW:
+            if isReturn:
+                return self.arguments[0].to_pyccg_array(
+                    False) + self.arguments[1].to_pyccg_array(True)
+            else:
+                return [self.arguments[0].to_pyccg_array(
+                    False) + self.arguments[1].to_pyccg_array(True)]
+        elif self.arguments == []:
+            return [self.name]
+
+    def flat_type(self):
+        if self.isArrow():
+            flat_type = []
+            for t in self.arguments:
+                flat_type += t.flat_type()
+            return flat_type
+        else:
+            return [self.name]
+        
 
 
 class TypeConstructor(Type):
