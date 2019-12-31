@@ -110,6 +110,9 @@ new_primitives = common_primitives + [
     Primitive("moveHand", arrow(tint, ttower, ttower), _moveHand),
     Primitive("reverseHand", arrow(ttower, ttower), _reverseHand)
     ]
+debug_primitives = [Primitive("tower_loopM", arrow(tint, arrow(tint, ttower, ttower), ttower, ttower), _simpleLoop)] + [Primitive(name, arrow(ttower,ttower), TowerContinuation(0, w, h))
+     for name, (w, h) in blocks.items()] + \
+         [Primitive(str(j), tint, j) for j in [5] ]
 
 def executeTower(p, timeout=None):
     try:

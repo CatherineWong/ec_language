@@ -18,29 +18,39 @@ class Type(object):
                                                       [ Type.fromjson(a) for a in j["arguments"] ])
         assert False
     
-    def get_base_types(self):
+    def get_base_types(self, fixedVariableType):
         if self.isArrow():
             base_types = set()
             for t in self.arguments:
-                if t.get_base_types() is not None:
-                    base_types.update(t.get_base_types())
-            return set(base_types)
+                if t.get_base_types(fixedVariableType) is not None:
+                    base_types.update(t.get_base_types(fixedVariableType))
         else:
-            return set([self.name])
+            if self.isPolymorphic:
+                name = self.show(False)
+                if fixedVariableType is not None:
+                    names = set([name.replace('t0', fixedVariableType.name)])
+                    return names
+                else:
+                    print("Error: trying to get base types for a polymorphic type.")
+                    assert False
+            else:
+                return set([self.name])
+        return base_types
     
     def to_pyccg_array(self, isReturn):
         """
         Converts to PyCCG function type: nested array type format.
         """
-        if self.name == ARROW:
+        if self.isArrow():
             if isReturn:
                 return self.arguments[0].to_pyccg_array(
                     False) + self.arguments[1].to_pyccg_array(True)
             else:
                 return [self.arguments[0].to_pyccg_array(
                     False) + self.arguments[1].to_pyccg_array(True)]
-        elif self.arguments == []:
-            return [self.name]
+        else:
+            return [self.show(False)]
+
 
     def flat_type(self):
         if self.isArrow():

@@ -417,8 +417,12 @@ def ecIterator(grammar, tasks,
 
         # Combine topDownFrontiers from this task batch with all frontiers.
         for f in topDownFrontiers:
-            if f.task not in result.allFrontiers: continue # backward compatibility with old checkpoints
-            result.allFrontiers[f.task] = result.allFrontiers[f.task].combine(f).topK(maximumFrontier)
+            if f.task not in result.allFrontiers:
+                if not custom_wake_generative: continue # backward compatibility with old checkpoints
+                else: 
+                    result.allFrontiers[f.task] = f
+            else:
+                result.allFrontiers[f.task] = result.allFrontiers[f.task].combine(f).topK(maximumFrontier)
 
         eprint("Frontiers discovered top down: " + str(len(tasksHitTopDown)))
         eprint("Total frontiers: " + str(len([f for f in result.allFrontiers.values() if not f.empty])))
@@ -666,6 +670,7 @@ def consolidate(result, grammar, _=None, topK=None, arity=None, pseudoCounts=Non
         if f.empty:
             continue
         eprint(f.task)
+        eprint(f.task.request)
         for e in f.normalize().topK(5):
             eprint("%.02f\t%s" % (e.logPosterior, e.program))
         eprint()

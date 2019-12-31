@@ -23,6 +23,7 @@ class Grammar(object):
         self.productions = productions
 
         self.continuationType = continuationType
+        self.fixedVariableType = None
 
         self.expression2likelihood = dict((p, l) for l, _, p in productions)
         self.expression2likelihood[Index(0)] = self.logVariable
@@ -110,7 +111,7 @@ class Grammar(object):
     
     @property
     def base_types(self):
-        return set().union(*[t.get_base_types() for (_, t, _) in self.productions])
+        return set().union(*[t.get_base_types(self.fixedVariableType) for (_, t, _) in self.productions])
     
     def removeProductions(self, ps):
         return Grammar(

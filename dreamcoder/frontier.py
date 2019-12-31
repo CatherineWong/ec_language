@@ -61,6 +61,7 @@ class Frontier(object):
         return f
 
     def marginalLikelihood(self):
+        
         return lse([e.logPrior + e.logLikelihood for e in self])
 
     def temperature(self,T):

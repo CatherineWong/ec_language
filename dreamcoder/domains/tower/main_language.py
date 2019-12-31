@@ -1,6 +1,6 @@
 from dreamcoder.dreamcoder import *
 
-from dreamcoder.domains.tower.towerPrimitives import ttower, executeTower, _empty_tower, TowerState
+from dreamcoder.domains.tower.towerPrimitives import ttower, executeTower, _empty_tower, TowerState, debug_primitives
 from dreamcoder.domains.tower.makeTowerTasks import *
 from dreamcoder.domains.tower.tower_common import renderPlan, towerLength, centerTower
 from dreamcoder.utilities import *
@@ -73,6 +73,7 @@ def main(arguments):
         def set_ontology(self, grammar):
             self.grammar = grammar
             self.ontology = self.make_ontology(grammar)
+            
         
         def make_ontology(self, grammar):
             """Construct a PyCCG-compatible ontology from a Dreamcoder grammar."""
@@ -135,15 +136,51 @@ def main(arguments):
                     ec_sexpr = ec_sexpr.replace(CONT_FN, '$0')
                     ec_sexpr = "(lambda %s)" % ec_sexpr
             return ec_sexpr
+        
+        def translate_ec_expr(self, ec_sexpr):
+            # Remove continuation type.
+            if self.grammar.continuationType is not None:
+                CONT_VAR, CONT_FN = '$0', 'fcont_cont'
+                if ec_sexpr.find(CONT_VAR) == -1:
+                    return None 
+                else:
+                    # Replace last instance of the continuation var.
+                    def rreplace(s, old, new):
+                        return (s[::-1].replace(old[::-1], new[::-1], 1))[::-1]
+                    ec_sexpr = rreplace(ec_sexpr, CONT_VAR, CONT_FN)
+                    ec_sexpr = ec_sexpr.replace('(lambda ', '', 1)[:-1]
+            
+            pyccg_expr, bound = self.ontology.read_ec_sexpr(ec_sexpr, typecheck=False)
+            return pyccg_expr
+            
     
     class ECTowerModel(object):
+        """Model: wrapper around an EC task with evaluation functions."""
         def __init__(self, task, translator, debug=False):
             self.debug = debug
             self.task = task
             self.translator = translator
             self.task_timeout = 10.0
+        
+        def evaluate_ec_program(self, ec_sexpr):
+            # Directly evaluates an EC program.
+            if self.debug:
+                print("%s" % (str(ec_sexpr)))
+            try:
+                p = Program.parse(ec_sexpr)
+                logLikelihood = self.task.logLikelihood(p, timeout=self.task_timeout)
+                print(logLikelihood)
+                if logLikelihood >= 0:
+                    if self.debug:
+                        print("FOUND ", ec_sexpr)
+                    return True
+            except Exception as e:
+                if self.debug:
+                    print(e)
+                return False
             
         def evaluate(self, pyccg_lf):
+            """Translates a PyCCG LF and then evaluates it on the EC task."""
             translated = translator.translate_expr(pyccg_lf)
             if translated:
                 if self.debug:
@@ -151,7 +188,7 @@ def main(arguments):
                 try:
                     p = Program.parse(translated)
                     logLikelihood = self.task.logLikelihood(p, timeout=self.task_timeout)
-                    if logLikelihood >= 0:
+                    if logLikelihood >= 0.0:
                         if self.debug:
                             print("FOUND ", translated)
                         return True
@@ -163,26 +200,59 @@ def main(arguments):
             else:
                 return False
     
-
     ### Initialize tower grammar and PyCCG ontology from the grammar.
     
     g0 = Grammar.uniform({"new": new_primitives,
-                          "old": primitives}[arguments.pop("primitives")],
+                          "old": debug_primitives,}[arguments.pop("primitives")],
                          continuationType=ttower)
     
     translator = ECTranslator(debug=True)
     translator.set_ontology(g0)
     
     
+    # Debugging tests
+    DEBUG_TRANSLATION = False 
+    if DEBUG_TRANSLATION:
+        # Test translation of EC expressions into PyCCG.
+        translated = translator.translate_ec_expr('(lambda (1x3 (tower_loopM 5 (lambda (1x3 $0)) $0)))')
+        print(translated)
+        assert False
+    
+    DEBUG_TASK = True 
+    if DEBUG_TASK:
+        # Test PyCCG translated expressions on tasks.
+        program = '(lambda (tower_loopM 5 (lambda (3x1 $0)) $0))'
+        expr = 'f0_tower_loopM(f3_5,f1_3x1,fcont_cont)'
+        gold_program = '(lambda (tower_loopM 5 (lambda (lambda (3x1 $0))) $0))'
+        
+        
+        tasks = makeLanguageTasks()
+        for task in [tasks[4]]:
+            sentence = task.name.split()
+            print(sentence)
+            model = ECTowerModel(task, translator, debug=True)
+            model.evaluate_ec_program(gold_program)
+            translated = translator.translate_ec_expr(gold_program)
+            print(translated)
+            translated_back = translator.translate_expr(translated)
+            print(translated_back)
+            
+        assert False
+        
+    
+    
     # Dummy lexicon for lexical categories.
     # Going to start with very permissive
+    # FunctionalCategory enumerate based on semantic arity. 
     lexicon = Lexicon.fromstring(r"""
         :- S:N
         
-        _dummy_noun => N {}
-        _dummy_verb => S/N {}
-        _dummy_adj => N/N {}
-        
+        _dummy_1 => N {}
+        _dummy_2 => S/N {}
+        _dummy_3 => S/N/N {}
+
+        _dummy_4 => N/N {}
+        _dummy_5 => S\N/N {}
     """, translator.ontology, include_semantics=False)
     pyccg_learner = WordLearner(lexicon, max_expr_depth=3)
     
@@ -191,16 +261,19 @@ def main(arguments):
     # Wake generative: enumerate using the parser, check using towers, and 
     # update the lexicon.
     
+    
     from pyccg.pyccg.chart import WeightedCCGChartParser, printCCGDerivation
-    for task in [tasks[4]:
-        sentence = task.name.split()
-        model = ECTowerModel(task, translator, debug=False)
-        pyccg_learner.update_with_distant(sentence, model=model, answer=True)
-        
-        parser = pyccg_learner.make_parser()
-        results = parser.parse(sentence)
-        if len(results) > 0:
-            printCCGDerivation(results[0])
+    UPDATE_WITH_DISTANT = True
+    if UPDATE_WITH_DISTANT:
+        for task in [tasks[1]]:
+            sentence = task.name.split()
+            model = ECTowerModel(task, translator, debug=True)
+            pyccg_learner.update_with_distant(sentence, model=model, answer=True)
+            
+            parser = pyccg_learner.make_parser()
+            results = parser.parse(sentence)
+            if len(results) > 0:
+                printCCGDerivation(results[0])
 
         
         
