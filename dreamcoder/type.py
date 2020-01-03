@@ -28,7 +28,9 @@ class Type(object):
             if self.isPolymorphic:
                 name = self.show(False)
                 if fixedVariableType is not None:
-                    names = set([name.replace('t0', fixedVariableType.name)])
+                    # Hacky: remove polymorphic types.
+                    import re
+                    names = set([re.sub(r't\d', fixedVariableType.name, name)])
                     return names
                 else:
                     print("Error: trying to get base types for a polymorphic type.")
@@ -93,6 +95,11 @@ class TypeConstructor(Type):
             return "%s(%s)" % (self.name, ", ".join(x.show(True)
                                                     for x in self.arguments))
 
+    def makeDummyMonomorphic(self, mapping=None):
+        mapping = mapping if mapping is not None else {}
+        return TypeConstructor(self.name,
+                               [ a.makeDummyMonomorphic(mapping) for a in self.arguments ])
+    
     def json(self):
         return {"constructor": self.name,
                 "arguments": [a.json() for a in self.arguments]}
@@ -187,6 +194,12 @@ class TypeVariable(Type):
 
     def functionArguments(self): return []
 
+    def makeDummyMonomorphic(self, mapping=None):
+        mapping = mapping if mapping is not None else {}
+        if self.v  not in mapping:
+            mapping[self.v] = TypeConstructor(f"dummy_t{len(mapping)}", [])
+        return mapping[self.v]
+            
     def apply(self, context):
         for v, t in context.substitution:
             if v == self.v:

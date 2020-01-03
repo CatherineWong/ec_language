@@ -163,7 +163,7 @@ def ecIterator(grammar, tasks,
                maximumFrontier=None,
                pseudoCounts=1.0, aic=1.0,
                structurePenalty=0.001, arity=0,
-               evaluationTimeout=1.0,  # seconds
+               evaluationTimeout=3.0,  # seconds
                taskBatchSize=None,
                taskReranker='default',
                CPUs=1,
@@ -671,7 +671,8 @@ def consolidate(result, grammar, _=None, topK=None, arity=None, pseudoCounts=Non
             continue
         eprint(f.task)
         eprint(f.task.request)
-        for e in f.normalize().topK(5):
+        # for e in f.normalize().topK(5):
+        for e in f.topK(5):
             eprint("%.02f\t%s" % (e.logPosterior, e.program))
         eprint()
 
@@ -693,8 +694,7 @@ def consolidate(result, grammar, _=None, topK=None, arity=None, pseudoCounts=Non
         # Store compression frontiers in the result.
         for c in compressionFrontiers:
             result.allFrontiers[c.task] = c.topK(0) if c in needToSupervise else c
-
-
+            
     result.grammars.append(grammar)
     eprint("Grammar after iteration %d:" % (iteration + 1))
     eprint(grammar)

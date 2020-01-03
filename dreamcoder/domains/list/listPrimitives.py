@@ -346,7 +346,7 @@ def bootstrapTarget():
         Primitive("car", arrow(tlist(t0), t0), _car),
         Primitive("cdr", arrow(tlist(t0), tlist(t0)), _cdr),
         Primitive("empty?", arrow(tlist(t0), tbool), _isEmpty),
-    ] + [Primitive(str(j), tint, j) for j in range(2)]
+    ] + [Primitive(str(j), tint, j) for j in range(3)]
 
 
 def bootstrapTarget_extra():

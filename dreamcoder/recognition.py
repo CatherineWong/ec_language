@@ -1340,7 +1340,8 @@ class RecurrentFeatureExtractor(nn.Module):
                     examples.append((tuple(xs),y))
                     if len(examples) >= random.choice(self.requestToNumberOfExamples[tp]):
                         return Task("Helmholtz", tp, examples)
-                except: continue
+                except: 
+                    continue
 
         else:
             candidateInputs = list(self.requestToInputs[tp])

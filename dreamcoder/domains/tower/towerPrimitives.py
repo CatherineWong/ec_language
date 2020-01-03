@@ -112,7 +112,7 @@ new_primitives = common_primitives + [
     ]
 debug_primitives = [Primitive("tower_loopM", arrow(tint, arrow(tint, ttower, ttower), ttower, ttower), _simpleLoop)] + [Primitive(name, arrow(ttower,ttower), TowerContinuation(0, w, h))
      for name, (w, h) in blocks.items()] + \
-         [Primitive(str(j), tint, j) for j in [5] ]
+         [Primitive(str(j), tint, j) for j in range(9) ]
 
 def executeTower(p, timeout=None):
     try:
