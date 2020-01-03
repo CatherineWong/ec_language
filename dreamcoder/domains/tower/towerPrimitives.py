@@ -121,7 +121,7 @@ def executeTower(p, timeout=None):
     except RunWithTimeout: return None
     except: return None
 
-def animateTower(exportPrefix, p):
+def animateTower(exportPrefix, p, plan, filename="", seed=None):
     print(exportPrefix, p)
     from dreamcoder.domains.tower.tower_common import renderPlan
     state,actions = p.evaluate([])(_empty_tower)(TowerState(history=[]))
@@ -138,18 +138,31 @@ def animateTower(exportPrefix, p):
             if isinstance(state, TowerState):
                 h = state.hand
         return h
+    
+    seed = hash(exportPrefix) if len(filename) < 1 else hash(filename)
     animation = [renderPlan([b for b in trajectory[:n] if not isinstance(b, TowerState)],
                             pretty=True, Lego=True,
                             drawHand=hd(n),
                             masterPlan=actions,
-                            randomSeed=hash(exportPrefix))
+                            randomSeed=seed)
                  for n in range(0,len(trajectory) + 1)]
-    import scipy.misc
+    
+    # Render full plan without towers
+    noHand = renderPlan(plan,
+                   pretty=True, Lego=True,
+                   drawHand=None,
+                   randomSeed=seed)
+    # import scipy.misc
+    # scipy.misc.imsave(f, a)
+    import imageio
     import random
     r = random.random()
     paths = []
+    
+    f = os.path.join(exportPrefix, filename)
     for n in range(len(animation)):
-        paths.append(f"{exportPrefix}_{n}.png")
-        scipy.misc.imsave(paths[-1], animation[n])
-    os.system(f"convert -delay 10 -loop 0 {' '.join(paths)} {exportPrefix}.gif")
-#    os.system(f"rm {' '.join(paths)}")
+        paths.append(f"{f}_{n}.png")
+        imageio.imwrite(paths[-1], animation[n])
+    os.system(f"convert -delay 10 -loop 0 {' '.join(paths)} {f}.gif")
+    os.system(f"rm {f}_*.png")
+    imageio.imwrite(f'{f}.png', noHand)

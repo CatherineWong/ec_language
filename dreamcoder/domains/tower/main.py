@@ -143,6 +143,11 @@ def tower_options(parser):
     parser.add_argument("--primitives",
                         default="old", type=str,
                         choices=["new", "old"])
+    parser.add_argument("--output",
+                        default="../tower_images/", type=str)
+    parser.add_argument("--animate",
+                        default=False,
+                        action="store_true")
 
 
 def dreamOfTowers(grammar, prefix, N=250, make_montage=True):
@@ -317,12 +322,27 @@ def main(arguments):
     random.shuffle(shuffledTest)
     shuffledTest = shuffledTest + [None]*(60 - len(shuffledTest))
     SupervisedTower.exportMany("/tmp/every_tower.png",shuffledTrain + shuffledTest, shuffle=False, columns=10)
+    
+    output = arguments['output']
+    animate = arguments['animate']
+    
+    def tokenize(name):
+        """Ultra simple tokenizer. Removes punctuation, then splits on spaces."""
+        import string
+        remove_punctuation = str.maketrans('', '', string.punctuation)
+        tokenized = name.translate(remove_punctuation).lower().split()
+        return tokenized
+        
     for j,task in enumerate(tasks):
-        if taskType == 'language':
-            filename = "_".join(task.name.split(" "))
-            task.exportImage(f'../tower_images/tmp/{j}_{filename}.png')
+        filename = "_".join(tokenize(task.name))
+        filename = f'{j}_{filename}'
+        if animate:
+            task.exportAnimation(output, filename)
+            # task.exportImage(os.path.join(output, f'{filename}.png'))
+            assert False
         else:
-            task.exportImage(f"/tmp/tower_task_{j}.png")
+            task.exportImage(os.path.join(output, f'{filename}.png'))
+
     for k,v in dSLDemo().items():
         # scipy.misc.imsave(f"/tmp/tower_dsl_{k}.png", v)
         imageio.imwrite(f"/tmp/tower_dsl_{k}.png", v)

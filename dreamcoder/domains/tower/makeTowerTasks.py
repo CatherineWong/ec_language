@@ -91,11 +91,16 @@ class SupervisedTower(Task):
     def exportImage(self, f, pretty=True, Lego=True, drawHand=False):
         a = renderPlan(self.plan,
                        pretty=pretty, Lego=Lego,
-                       drawHand=t.hand if drawHand else None)
+                       drawHand=t.hand if drawHand else None,
+                       randomSeed=hash(f))
         # import scipy.misc
         # scipy.misc.imsave(f, a)
         import imageio
         imageio.imwrite(f, a)
+    
+    def exportAnimation(self, exportPrefix, filename):
+        from dreamcoder.domains.tower.towerPrimitives import animateTower
+        animateTower(exportPrefix, p=self.original, plan=self.plan, filename=filename)
 
     def logLikelihood(self, e, timeout=None):
         from dreamcoder.domains.tower.tower_common import centerTower
