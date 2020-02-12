@@ -338,8 +338,6 @@ def main(arguments):
         filename = f'{j}_{filename}'
         if animate:
             task.exportAnimation(output, filename)
-            # task.exportImage(os.path.join(output, f'{filename}.png'))
-            assert False
         else:
             task.exportImage(os.path.join(output, f'{filename}.png'))
 
